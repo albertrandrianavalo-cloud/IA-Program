@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Program — Assistant Programmation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 480px;
+            height: 650px;
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #334155;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            padding: 18px;
+            border-radius: 16px 16px 0 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-header span {
+            font-size: 13px;
+            font-weight: normal;
+            opacity: 0.85;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .message.user {
+            background: #6366f1;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot {
+            background: #334155;
+            color: #e2e8f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #334155;
+            gap: 8px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .chat-input input::placeholder {
+            color: #64748b;
+        }
+
+        .chat-input input:focus {
+            border-color: #6366f1;
+        }
+
+        .chat-input button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+
+        .chat-input button:hover {
+            background: #4f46e5;
+        }
+
+        .typing {
+            color: #64748b;
+            font-style: italic;
+            font-size: 13px;
+            padding-left: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+
+        <div class="chat-header">
+            🤖 IA Program
+            <span>Assistant Expert en Programmation</span>
+        </div>
+
+        <div class="chat-messages" id="messages">
+            <div class="message bot">Bonjour ! Je suis <strong>IA Program</strong> 🤖<br>Je suis ton assistant expert en programmation. Pose-moi n'importe quelle question sur le code ! 🚀</div>
+        </div>
+
+        <div class="chat-input">
+            <input
+                type="text"
+                id="input"
+                placeholder="Ex: Comment faire une boucle en Python ?"
+            />
+            <button onclick="envoyer()">➤</button>
+        </div>
+
+    </div>
+
+    <script>
+        const input = document.getElementById("input");
+        const messages = document.getElementById("messages");
+
+        input.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") envoyer();
+        });
+
+        async function envoyer() {
+            const message = input.value.trim();
+            if (!message) return;
+
+            ajouterMessage(message, "user");
+            input.value = "";
+
+            const typing = document.createElement("div");
+            typing.className = "typing";
+            typing.textContent = "🤖 IA Program est en train d'écrire...";
+            messages.appendChild(typing);
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await res.json();
+                messages.removeChild(typing);
+                ajouterMessage(data.reponse, "bot");
+
+            } catch (error) {
+                messages.removeChild(typing);
+                ajouterMessage("❌ Erreur de connexion. Réessaie !", "bot");
+            }
+        }
+
+        function ajouterMessage(texte, role) {
+            const div = document.createElement("div");
+            div.className = `message ${role}`;
+            div.textContent = texte;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
