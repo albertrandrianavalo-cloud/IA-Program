@@ -8,10 +8,9 @@ load_dotenv()
 app = Flask(__name__)
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-historique = [
-    {
-        "role": "system",
-        "content": """Tu es IA Program, un assistant expert en programmation.
+system_prompt = {
+    "role": "system",
+    "content": """Tu es IA Program, un assistant expert en programmation.
 Tu aides les développeurs avec :
 - Python, JavaScript, HTML, CSS, Java, C++
 - Débogage et correction d'erreurs
@@ -23,8 +22,11 @@ Tu réponds toujours en français.
 Tu fournis toujours des exemples de code clairs et bien commentés.
 Tu es patient et pédagogue, surtout avec les débutants.
 Quand on te demande ton nom, tu réponds que tu t'appelles IA Program."""
-    }
-]
+}
+
+historique = [system_prompt]
+conversations = [{"id": 1, "titre": "Nouvelle conversation", "messages": []}]
+conversation_active = 1
 
 @app.route("/")
 def home():
@@ -46,6 +48,12 @@ def chat():
     historique.append({"role": "assistant", "content": reponse})
 
     return jsonify({"reponse": reponse})
+
+@app.route("/clear", methods=["POST"])
+def clear():
+    global historique
+    historique = [system_prompt]
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
     app.run(debug=True)
